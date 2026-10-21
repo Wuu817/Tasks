@@ -3,7 +3,13 @@ import csv
 import math
 
 def calculate(xs, ys):
+    if len(xs) != len(ys):
+        raise ValueError("两列数据长度必须相同")
+
+    if len(xs) < 2:
+        raise ValueError("至少需要两对数据")
     n = len(xs)
+
 
     sum_x = 0.0
     sum_y = 0.0
@@ -24,6 +30,8 @@ def calculate(xs, ys):
         dy = dy + b * b
         prod = prod + a * b
 
+    if dx == 0 or dy == 0:
+        raise ValueError("某一列数据全部相同，无法计算相关系数")
     denom = math.sqrt(dx * dy)
     r = prod / denom
     return n, mean_x, mean_y, r
