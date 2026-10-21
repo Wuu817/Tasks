@@ -2,11 +2,6 @@ import yaml
 import csv
 import math
 
-CONFIG_PATH = "config.yaml"
-
-with open(CONFIG_PATH) as f:
-    cfg = yaml.safe_load(f)
-
 def calculate(xs, ys):
     n = len(xs)
 
@@ -33,22 +28,29 @@ def calculate(xs, ys):
     r = prod / denom
     return n, mean_x, mean_y, r
 
-csv_path = cfg["input_csv"]
-col_x = cfg["columns"]["x"]
-col_y = cfg["columns"]["y"]
+if __name__ == "__main__":
 
-xs = []
-ys = []
+    CONFIG_PATH = "config.yaml"
 
-with open(csv_path) as f:
-    reader = csv.DictReader(f)
-    for row in reader:
-        xs.append(float(row[col_x]))
-        ys.append(float(row[col_y]))
+    with open(CONFIG_PATH) as f:
+        cfg = yaml.safe_load(f)
 
-n, mean_x, mean_y, r = calculate(xs, ys)
+    csv_path = cfg["input_csv"]
+    col_x = cfg["columns"]["x"]
+    col_y = cfg["columns"]["y"]
 
-print("n =", n)
-print("mean_x =", mean_x)
-print("mean_y =", mean_y)
-print("r =", r)
+    xs = []
+    ys = []
+
+    with open(csv_path) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            xs.append(float(row[col_x]))
+            ys.append(float(row[col_y]))
+
+    n, mean_x, mean_y, r = calculate(xs, ys)
+
+    print("n =", n)
+    print("mean_x =", mean_x)
+    print("mean_y =", mean_y)
+    print("r =", r)
