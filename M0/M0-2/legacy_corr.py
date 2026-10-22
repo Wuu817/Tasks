@@ -1,6 +1,8 @@
 import yaml
 import csv
 import math
+import sys
+import argparse
 
 def calculate(xs, ys):
     if len(xs) != len(ys):
@@ -37,28 +39,45 @@ def calculate(xs, ys):
     return n, mean_x, mean_y, r
 
 if __name__ == "__main__":
+    try:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--config", default="config.yaml")
+        args = parser.parse_args()
+        CONFIG_PATH = args.config
 
-    CONFIG_PATH = "config.yaml"
+        with open(CONFIG_PATH) as f:
+            cfg = yaml.safe_load(f)
 
-    with open(CONFIG_PATH) as f:
-        cfg = yaml.safe_load(f)
+        if not cfg:
+            raise ValueError("配置文件为空")
 
-    csv_path = cfg["input_csv"]
-    col_x = cfg["columns"]["x"]
-    col_y = cfg["columns"]["y"]
+        csv_path = cfg["input_csv"]
+        col_x = cfg["columns"]["x"]
+        col_y = cfg["columns"]["y"]
 
-    xs = []
-    ys = []
+        xs = []
+        ys = []
 
-    with open(csv_path) as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            xs.append(float(row[col_x]))
-            ys.append(float(row[col_y]))
+        with open(csv_path) as f:
+            reader = csv.DictReader(f)
 
-    n, mean_x, mean_y, r = calculate(xs, ys)
+            if reader.fieldnames is None:
+                raise ValueError("CSV 文件为空")
 
-    print("n =", n)
-    print("mean_x =", mean_x)
-    print("mean_y =", mean_y)
-    print("r =", r)
+            if col_x not in reader.fieldnames or col_y not in reader.fieldnames:
+                raise ValueError("CSV 列名与配置不匹配")
+
+            for row in reader:
+                xs.append(float(row[col_x]))
+                ys.append(float(row[col_y]))
+
+        n, mean_x, mean_y, r = calculate(xs, ys)
+
+        print("n =", n)
+        print("mean_x =", mean_x)
+        print("mean_y =", mean_y)
+        print("r =", r)
+
+    except (OSError, ValueError, KeyError, yaml.YAMLError) as error:
+        print("错误：", error, file=sys.stderr)
+        sys.exit(1)
