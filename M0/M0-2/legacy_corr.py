@@ -3,6 +3,7 @@ import csv
 import math
 import sys
 import argparse
+from pathlib import Path
 
 def calculate(xs, ys):
     if len(xs) != len(ys):
@@ -51,7 +52,7 @@ if __name__ == "__main__":
         if not cfg:
             raise ValueError("配置文件为空")
 
-        csv_path = cfg["input_csv"]
+        csv_path = Path(CONFIG_PATH).parent / cfg["input_csv"]
         col_x = cfg["columns"]["x"]
         col_y = cfg["columns"]["y"]
 
