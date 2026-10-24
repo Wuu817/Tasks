@@ -43,8 +43,13 @@ if reader.fieldnames is not None and (
     sys.exit(1)
 
 for row in reader:
-    t = float(row["time"])
-    v = float(row["value"])
+    try:
+        t = float(row["time"])
+        v = float(row["value"])
+    except (ValueError, TypeError):
+        print("错误：CSV 的 time 和 value 必须是数字", file=sys.stderr)
+        sys.exit(1)
+
     times.append(t)
     data.append(v)
 
