@@ -18,6 +18,7 @@ sensor_analyzer.py  —— 上一届学长留下的"能用"的脚本
 
 import csv
 import os
+import sys
 
 INPUT_FILE = "sensor_data.csv"
 OUTPUT_FILE = "cleaned_data.csv"
@@ -29,13 +30,27 @@ cleaned = []
 print("=== 传感器数据分析 ===")
 
 # --- 读取数据 ---
-reader = csv.DictReader(open(INPUT_FILE, "r"))
+try:
+    reader = csv.DictReader(open(INPUT_FILE, "r"))
+except FileNotFoundError:
+    print("错误：找不到输入文件", INPUT_FILE, file=sys.stderr)
+    sys.exit(1)
+
+if reader.fieldnames is not None and (
+    "time" not in reader.fieldnames or "value" not in reader.fieldnames
+):
+    print("错误：CSV 必须包含 time 和 value 两列", file=sys.stderr)
+    sys.exit(1)
 
 for row in reader:
     t = float(row["time"])
     v = float(row["value"])
     times.append(t)
     data.append(v)
+
+if not data:
+    print("错误：输入文件中没有数据", file=sys.stderr)
+    sys.exit(1)
 
 print("共读取 %d 条数据" % len(data))
 
