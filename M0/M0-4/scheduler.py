@@ -32,6 +32,28 @@ except json.JSONDecodeError as error:
     parser.error(f"JSON 配置文件格式错误 {args.config}: {error}")
 
 tasks = config["tasks"]
+if not tasks:
+    parser.error("任务列表不能为空：tasks 至少需要一个任务")
+
+for task in tasks:
+    rate = task["success_rate"]
+    if rate < 0 or rate > 1:
+        parser.error(f"任务 {task['name']} 的 success_rate 必须在 0 到 1 之间")
+
+task_names = []
+for task in tasks:
+    name = task["name"]
+    if name in task_names:
+        parser.error(f"任务名重复：{name}")
+    task_names.append(name)
+
+for task in tasks:
+    for dependency in task["dependencies"]:
+        if dependency not in task_names:
+            parser.error(
+                f"任务 {task['name']} 依赖的任务 {dependency} 不存在"
+            )
+
 if args.timeout is not None:
     timeout = args.timeout
 else:
@@ -143,7 +165,7 @@ while pending:
 
     # 一整轮都找不到可处理的任务，说明依赖关系有问题
     if not progressed:
-        raise ValueError("任务依赖无法排好顺序：可能有依赖环或不存在的任务")
+        parser.error("任务依赖形成环：剩余任务互相等待，无法执行")
 
 for task in tasks:
     name = task["name"]
