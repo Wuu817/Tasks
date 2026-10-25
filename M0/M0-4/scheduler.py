@@ -10,6 +10,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--config", required=True)
 parser.add_argument("--timeout", type=float)
 parser.add_argument("--seed", type=int)
+parser.add_argument("--report", default="report.json")
 args = parser.parse_args()
 
 # 读取 YAML 或 JSON 配置
@@ -33,6 +34,19 @@ if args.seed is not None:
 # status 记录已经处理过的任务及其结果
 # pending 记录还没有处理的任务
 status = {}
+task_records = {}
+
+for task in tasks:
+    name = task["name"]
+    task_records[name] = {
+        "name": name,
+        "status": None,
+        "attempts": 0,
+        "duration": 0.0,
+        "started_at": None,
+        "ended_at": None,
+    }
+
 pending = tasks.copy()
 start = time.monotonic()
 
@@ -70,6 +84,11 @@ while pending:
                 status[name] = "TIMEOUT"
                 break
 
+            task_records[name]["attempts"] = attempt
+
+            if task_records[name]["started_at"] is None:
+                task_records[name]["started_at"] = time.time()
+                task_run_start = time.monotonic()
             duration = task["duration"]
 
             # 本次任务所需时间已超过剩余时间
@@ -94,6 +113,10 @@ while pending:
             else:
                 print(name, "RETRY")
 
+        if task_records[name]["attempts"] > 0:
+            task_records[name]["ended_at"] = time.time()
+            task_records[name]["duration"] = time.monotonic() - task_run_start
+
         print(name, status[name])
 
         # 一旦超时，其余尚未处理的任务也不再执行
@@ -106,5 +129,18 @@ while pending:
     # 一整轮都找不到可处理的任务，说明依赖关系有问题
     if not progressed:
         raise ValueError("任务依赖无法排好顺序：可能有依赖环或不存在的任务")
+
+for task in tasks:
+    name = task["name"]
+    task_records[name]["status"] = status[name]
+
+report = {
+    "timeout": "TIMEOUT" in status.values(),
+    "total_duration": time.monotonic() - start,
+    "tasks": list(task_records.values()),
+}
+
+with open(args.report, "w", encoding="utf-8") as f:
+    json.dump(report, f, ensure_ascii=False, indent=2)
 
 print("最终状态：", status)
