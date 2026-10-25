@@ -4,7 +4,9 @@ import random
 import time
 
 import yaml
+from colorama import Fore, init
 
+init(autoreset=True)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", required=True)
@@ -14,13 +16,20 @@ parser.add_argument("--report", default="report.json")
 args = parser.parse_args()
 
 # 读取 YAML 或 JSON 配置
-with open(args.config, encoding="utf-8") as f:
-    if args.config.lower().endswith((".yaml", ".yml")):
-        config = yaml.safe_load(f)
-    elif args.config.lower().endswith(".json"):
-        config = json.load(f)
-    else:
-        parser.error("配置文件必须是 .yaml、.yml 或 .json")
+try:
+    with open(args.config, encoding="utf-8") as f:
+        if args.config.lower().endswith((".yaml", ".yml")):
+            config = yaml.safe_load(f)
+        elif args.config.lower().endswith(".json"):
+            config = json.load(f)
+        else:
+            parser.error("配置文件必须是 .yaml、.yml 或 .json")
+except OSError as error:
+    parser.error(f"无法读取配置文件 {args.config}: {error}")
+except yaml.YAMLError as error:
+    parser.error(f"YAML 配置文件格式错误 {args.config}: {error}")
+except json.JSONDecodeError as error:
+    parser.error(f"JSON 配置文件格式错误 {args.config}: {error}")
 
 tasks = config["tasks"]
 if args.timeout is not None:
@@ -73,7 +82,7 @@ while pending:
         # 只要有前置任务没成功，当前任务就跳过
         if any(status[dep] != "SUCCESS" for dep in dependencies):
             status[name] = "SKIPPED"
-            print(name, "SKIPPED")
+            print(name, Fore.BLUE + "SKIPPED")
             continue
 
         # 最多尝试 3 次：第一次执行 + 最多两次重试
@@ -111,13 +120,19 @@ while pending:
             if attempt == 3:
                 status[name] = "FAILED"
             else:
-                print(name, "RETRY")
+                print(name, Fore.YELLOW + "RETRY")
 
         if task_records[name]["attempts"] > 0:
             task_records[name]["ended_at"] = time.time()
             task_records[name]["duration"] = time.monotonic() - task_run_start
 
-        print(name, status[name])
+        state = status[name]
+        if state == "SUCCESS":
+            print(name, Fore.GREEN + state)
+        elif state == "FAILED":
+            print(name, Fore.RED + state)
+        else:
+            print(name, state)
 
         # 一旦超时，其余尚未处理的任务也不再执行
         if status[name] == "TIMEOUT":
