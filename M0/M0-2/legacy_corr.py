@@ -1,3 +1,6 @@
+#python3 /home/wu/Projects/Tasks/M0/M0-2/legacy_corr.py --config /某个文件夹/config.yaml
+
+
 import yaml
 import csv
 import math

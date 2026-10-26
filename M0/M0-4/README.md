@@ -31,3 +31,31 @@
 | `--timeout 秒数` | 否 | 覆盖配置中的**全局**时间上限，不是单个任务的上限 |
 | `--report 路径` | 否 | 指定 JSON 报告路径，默认是 `report.json` |
 | `--seed 整数` | 否 | 固定随机数序列，方便重复观察同一组随机判定 |
+
+## 三个运行示例
+
+以下命令都在 `M0/M0-4` 文件夹中运行，使用本题自带的 `tasks.yaml`。三个示例使用同一份配置，通过不同参数展示正常调度、另一组随机结果和全局超时。
+
+1. 固定随机种子为 42，使用配置中的 15 秒总时限，将结果写入默认的 `report.json`：
+
+   ```bash
+   .venv/bin/python scheduler.py --config tasks.yaml --seed 42
+   ```
+
+   本次验证中，`AvoidObstacle` 最终为 `FAILED`，依赖它的 `Place` 和 `ReturnHome` 为 `SKIPPED`。
+
+2. 改用随机种子 1，并把结果写入另一个报告文件：
+
+   ```bash
+   .venv/bin/python scheduler.py --config tasks.yaml --seed 1 --report report_seed1.json
+   ```
+
+   本次验证中，七个任务最终全部为 `SUCCESS`。
+
+3. 将整个调度过程的时限设为 0.1 秒，检查超时处理：
+
+   ```bash
+   .venv/bin/python scheduler.py --config tasks.yaml --timeout 0.1 --seed 42 --report report_timeout.json
+   ```
+
+   本次验证中，报告的 `timeout` 为 `true`，七个任务都记录为 `TIMEOUT`。

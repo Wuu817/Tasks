@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#python3 sensor_analyzer.py
 """
 sensor_analyzer.py  —— 上一届学长留下的"能用"的脚本
 
