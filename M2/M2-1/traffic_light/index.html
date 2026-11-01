@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>M2 · 红绿灯模拟器</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #151719; color: #eceeed; font-family: system-ui, sans-serif; }
+    main { min-height: 100svh; display: flex; flex-direction: column; align-items: center; padding: 16px 20px max(18px, env(safe-area-inset-bottom)); gap: 14px; }
+    header { width: min(100%, 420px); display: flex; align-items: center; justify-content: space-between; color: #a9afad; font-size: 12px; letter-spacing: .08em; }
+    button { font: inherit; cursor: pointer; touch-action: manipulation; }
+    #fullscreen { color: #dce1df; background: transparent; border: 1px solid #454a47; border-radius: 8px; padding: 8px 12px; }
+    .stage { flex: 1; width: 100%; display: grid; place-items: center; padding: 6px 0; }
+    .housing { background: #050505; padding: 20px 26px; border: 2px solid #3c4140; border-radius: 30px; display: grid; gap: 18px; }
+    .lamp { width: min(30vw, 15svh, 125px); aspect-ratio: 1; border-radius: 50%; background: #202020; border: 1px solid #303030; }
+    /* 只改变亮灯颜色，不添加光晕或闪烁，便于摄像头检测。 */
+    .lamp[data-color="red"].on { background: #ff0000; border-color: #ff0000; }
+    .lamp[data-color="yellow"].on { background: #ffff00; border-color: #ffff00; }
+    .lamp[data-color="green"].on { background: #00ff00; border-color: #00ff00; }
+    .controls { width: min(100%, 420px); }
+    #status { text-align: center; font-size: 15px; margin: 0 0 14px; }
+    .buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .choice { background: #242826; color: #e2e6e3; border: 1px solid #4b514e; border-radius: 12px; min-height: 50px; font-size: 16px; }
+    .choice[aria-pressed="true"] { background: #e2e6e3; color: #111; border-color: #e2e6e3; font-weight: 700; }
+    .off { grid-column: 1 / -1; }
+    .hint { color: #a0a7a3; font-size: 12px; line-height: 1.7; text-align: center; margin: 14px 0 0; }
+    @media (orientation: landscape) and (max-height: 550px) { main { flex-direction: row; flex-wrap: wrap; } header { max-width: none; width: 100%; } .stage { width: 45%; } .controls { width: 45%; } .lamp { width: 18svh; } .housing { gap: 10px; padding: 12px 20px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header><span>M2 / 红绿灯模拟器</span><button id="fullscreen" type="button">全屏</button></header>
+  <div class="stage" aria-label="竖排红黄绿信号灯">
+    <div class="housing">
+      <div class="lamp" data-color="red" aria-label="红灯：熄灭"></div>
+      <div class="lamp" data-color="yellow" aria-label="黄灯：熄灭"></div>
+      <div class="lamp" data-color="green" aria-label="绿灯：熄灭"></div>
+    </div>
+  </div>
+  <section class="controls" aria-label="切换亮灯">
+    <p id="status" role="status" aria-live="polite">当前：全部熄灭</p>
+    <div class="buttons">
+      <button class="choice" type="button" data-state="red" aria-pressed="false">红灯</button>
+      <button class="choice" type="button" data-state="yellow" aria-pressed="false">黄灯</button>
+      <button class="choice" type="button" data-state="green" aria-pressed="false">绿灯</button>
+      <button class="choice off" type="button" data-state="off" aria-pressed="true">全部熄灭</button>
+    </div>
+    <p class="hint">手机竖放，让摄像头只拍上方灯区。<br>关闭护眼 / 夜间模式，保持屏幕亮度固定。</p>
+  </section>
+</main>
+<script>
+  const names = {red: '红灯', yellow: '黄灯', green: '绿灯', off: '全部熄灭'};
+  function setLight(state) {
+    if (!(state in names)) return;
+    document.querySelectorAll('.lamp').forEach(lamp => {
+      const on = lamp.dataset.color === state;
+      lamp.classList.toggle('on', on);
+      lamp.setAttribute('aria-label', names[lamp.dataset.color] + (on ? '：亮起' : '：熄灭'));
+    });
+    document.querySelectorAll('.choice').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.state === state));
+    });
+    document.getElementById('status').textContent = '当前：' + names[state];
+  }
+  document.querySelectorAll('.choice').forEach(button => {
+    button.addEventListener('click', () => setLight(button.dataset.state));
+  });
+  document.getElementById('fullscreen').addEventListener('click', async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+      else document.getElementById('status').textContent = '此浏览器不支持全屏，可直接使用页面';
+    } catch {
+      document.getElementById('status').textContent = '未能进入全屏，可直接使用页面';
+    }
+  });
+</script>
+</body>
+</html>
