@@ -1,0 +1,5 @@
+GT / PRED,red,yellow,green,none
+red,90,7,0,1
+yellow,1,87,0,29
+green,3,0,65,17
+none,0,0,0,0

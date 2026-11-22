@@ -1,0 +1,40 @@
+
+day_01 (调参段)
+frames: 100
+accuracy: 100.00%
+miss: 0.00%
+false_positive: N/A
+P50: 1.00
+P95: 1.41
+normalized_P50: 0.071
+normalized_P95: 0.101
+
+dark_01 (调参段)
+frames: 100
+accuracy: 42.00%
+miss: 47.00%
+false_positive: N/A
+P50: 1.00
+P95: 222.44
+normalized_P50: 0.071
+normalized_P95: 14.829
+
+backlight_01 (测试段)
+frames: 100
+accuracy: 100.00%
+miss: 0.00%
+false_positive: N/A
+P50: 1.00
+P95: 1.41
+normalized_P50: 0.077
+normalized_P95: 0.109
+
+全部视频
+frames: 300
+accuracy: 80.67%
+miss: 15.67%
+false_positive: N/A
+P50: 1.00
+P95: 1.41
+normalized_P50: 0.071
+normalized_P95: 0.109

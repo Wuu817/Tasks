@@ -54,8 +54,8 @@ def detect(image):
         else:
             mask = green_mask
 
-        # 5. 开运算：去除 mask 中的小白色噪点
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        # 5. 闭运算：填补颜色区域中的小黑洞
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
         # 6. 查找轮廓
         contours, hierarchy = cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
@@ -212,6 +212,9 @@ def main():
             # 去畸变
             image = cv2.undistort(image, camera_matrix, dist_coeffs)
 
+            # 保存未标注的画面
+            raw_image = image.copy()
+
             # 检测当前帧
             image, results = detect(image)
 
@@ -219,22 +222,29 @@ def main():
                 cv2.imshow("Traffic Light", image)
                 key = cv2.waitKey(1) & 0xFF
 
-                # 按 s 保存当前检测结果
+                # 按 s 同时保存检测结果图和无标注原图
                 if key == ord("s"):
                     save_dir = Path(__file__).parent / "results" / "normal"
                     save_dir.mkdir(parents=True, exist_ok=True)
 
+                    raw_dir = save_dir / "raw"
+                    raw_dir.mkdir(parents=True, exist_ok=True)
+
                     save_path = save_dir / f"{save_count}.png"
+                    raw_path = raw_dir / f"{save_count}.png"
 
                     # 已有同名图片就继续找下一个编号
-                    while save_path.exists():
+                    while save_path.exists() or raw_path.exists():
                         save_count = save_count + 1
                         save_path = save_dir / f"{save_count}.png"
+                        raw_path = raw_dir / f"{save_count}.png"
 
                     saved = cv2.imwrite(str(save_path), image)
+                    raw_saved = cv2.imwrite(str(raw_path), raw_image)
 
-                    if saved:
+                    if saved and raw_saved:
                         print("已保存：", save_path)
+                        print("已保存原图：", raw_path)
                         save_count = save_count + 1
                     else:
                         print("图片保存失败")
